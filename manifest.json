@@ -1,13 +1,13 @@
 {
-  "display_name": "DW2 · Little Things + Story Memory",
+  "display_name": "Story Atelier · 剧情记忆馆",
   "loading_order": 95,
   "requires": [],
   "optional": [],
   "js": "index.js",
   "css": "style.css",
-  "author": "S.A. · DW2 / Story Memory patch",
-  "version": "0.8.1-beta",
+  "author": "Story Atelier · based on S.A. / DW2 Story Memory",
+  "version": "1.0.0-beta",
   "minimum_client_version": "1.16.0",
   "auto_update": false,
-  "generate_interceptor": "dw2StoryMemoryBeforeGenerate"
+  "generate_interceptor": "storyAtelierBeforeGenerate"
 }
