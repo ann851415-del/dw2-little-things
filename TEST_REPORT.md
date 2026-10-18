@@ -1,18 +1,21 @@
-# DW2 Little Things + Story Memory 0.8.0-beta — Test Report
+# DW2 Little Things + Story Memory 0.8.1-beta — Testing
 
-## Verified in the execution environment
-- 19 automated JavaScript tests: PASS. Verified selected swipe only; active re-roll removes stale data; regeneration interceptor; prompt injection; editing/deletion invalidation; chat/character isolation; preservation of disabled-state behavior; persistence; repair below summary threshold; stale in-flight summaries and clearing; Chinese/English fictional chronology; getCurrentChatId fallback; char limit; semantic recall; semantic fallback; delayed provider requests; re-roll during delayed recall.
-- 11 simulated browser checks: PASS. Headless Chromium, 390×844 viewport, mocked SillyTavern getContext + mocked independent OpenAI-compatible API. Extension menu, original float control, memory panel, AI recall toggle, memory extraction, display, injection, re-roll cleanup and original source checks.
-- No uncaught JavaScript errors during browser simulation.
-- node --check: PASS (combined source and memory module).
-- manifest.json: PASS. generate_interceptor points to dw2StoryMemoryBeforeGenerate.
-- User-supplied original source: included, not downloaded from an untrusted alternative.
+## Automated checks performed on 0.8.1
 
-## Not yet verified
-- Real Android TauriTavern 2.3.0 extension installation / complete operation.
-- Real iOS TestFlight third-party extension installation / complete operation.
-- External provider CORS/network/API key and actual AI quality.
-- Real TauriTavern runtime event order and actual pre-generation prompt placement.
-- Old third-party memory plugin interoperability/data migration.
+- **27/27 headless Chromium checks passed** using simulated TauriTavern / SillyTavern context and mocked AI API.
+- Screen sizes tested: **360 × 780**, **390 × 844**, and **432 × 930**.
+- For each size, checked: original DW2 menu alignment; modal title visible on opening; model-fetch URL and selection; manual one-batch summary; generated memory injection; re-roll invalidation of previous memory and prompt; rebuilding memory with the new selected re-roll; sticky title after scrolling; and absence of horizontal page overflow.
+- **0 uncaught JavaScript page errors** in those simulations.
+- **node --check**: PASS. JSON manifest: PASS.
 
-**Status:** Beta test build; do not promise final customer acceptance before real-device test.
+## Earlier 0.8.0 tests (not a substitute for new device tests)
+
+- Previous beta recorded 19 unit and 11 simulated browser passes. The new version rechecked critical memory, re-roll and injection paths in the 27 mobile simulation checks above.
+
+## Not verified
+
+- Actual Android or iPhone TauriTavern 2.3.0 runtime, installation, touch keyboard placement, and third-party API connectivity.
+- Whether the customer's specific independent provider exposes a CORS-accessible `GET /models` endpoint. Manual model-ID entry remains available.
+- Compatibility with simultaneous independent memory-injection extensions.
+
+**Status: customer-testing beta. Do not call it production-verified.**

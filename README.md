@@ -125,3 +125,11 @@ https://github.com/dw2devil1024-creator/dw2-little-things
 This merged build preserves DW2 original floating organizer, background tuning, and floor hiding. Its additional **剧情记忆馆** panel supports a separate OpenAI-compatible summarization API, fictional story timeline, character/world memories, re-roll-safe memory invalidation, AI-aided recall with local fallback, and prompt injection.
 
 See `INSTALL_AND_TEST.md` for installation and important platform and privacy limitations. The add-on is experimental and requires testing inside TauriTavern Android/iOS. Only private use is assumed until the original author grants redistribution permission.
+
+
+## 0.8.1 Mobile UI + Pull Buttons
+
+- **拉取模型** fetches available model IDs from your independent API provider if `GET /models` is supported. You can always type the ID yourself.
+- **拉取当前剧情（总结一批）** manually summarizes the next batch of current chat messages.
+- Memory entry in the wand/extensions menu aligns with the original DW2 entries.
+- Sticky top bar and improved safe-area mobile layout.

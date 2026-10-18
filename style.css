@@ -743,3 +743,62 @@
 #dw2-sm-overlay .dw2-sm-empty{font-size:13px;color:#e1d0dd;text-align:center;padding:15px}
 @media(max-width:520px){#dw2-sm-overlay.dw2-sm-overlay{padding:0;align-items:flex-end}#dw2-sm-overlay .dw2-sm-panel{max-height:93dvh;border-radius:23px 23px 0 0;padding:20px 17px max(20px,env(safe-area-inset-bottom));}#dw2-sm-overlay .dw2-sm-grid{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){#dw2-sm-overlay button{transition:none}}
+
+
+/* v0.8.1 — Mobile alignment and explicit provider model fetching */
+#extensionsMenu #dw2-sm-menu.extension_container{
+  display:flex !important;flex-direction:row !important;flex-wrap:nowrap !important;
+  align-items:center !important;justify-content:flex-start !important;
+  gap:12px !important;min-height:34px;box-sizing:border-box !important;
+  width:100%;cursor:pointer;
+}
+#extensionsMenu #dw2-sm-menu > i{
+  flex:0 0 24px !important;width:24px !important;min-width:24px !important;
+  margin:0 !important;padding:0 !important;display:inline-block !important;
+  line-height:1.2;text-align:center !important;opacity:.8;
+}
+#extensionsMenu #dw2-sm-menu > .dw2-lt-magic-label{
+  display:block !important;flex:1 1 auto;min-width:0;margin:0 !important;
+  font:inherit;color:inherit;white-space:normal;line-height:1.35;
+}
+#dw2-sm-overlay.dw2-sm-overlay{
+  padding:max(10px,env(safe-area-inset-top,0px)) 10px max(10px,env(safe-area-inset-bottom,0px));
+}
+#dw2-sm-overlay .dw2-sm-panel{min-height:0;max-height:calc(100vh - 26px);max-height:calc(100dvh - 26px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));}
+#dw2-sm-overlay .dw2-sm-head{
+  position:sticky;top:-1px;z-index:3;align-items:center;
+  margin:-12px -10px 12px;padding:12px 10px;
+  background:rgba(59,55,78,.99);border-radius:14px;border-bottom:1px solid rgba(255,255,255,.14);
+}
+#dw2-sm-overlay .dw2-sm-heading{min-width:0;flex:1;}
+#dw2-sm-overlay .dw2-sm-head h2{margin:3px 0 0;line-height:1.25;overflow-wrap:anywhere;}
+#dw2-sm-overlay .dw2-sm-close{flex:0 0 43px;}
+#dw2-sm-overlay .dw2-sm-quick{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:-5px 0 17px;}
+#dw2-sm-overlay .dw2-sm-quick-action{width:100%;min-width:0;padding:8px 9px;font-size:12px;line-height:1.4;
+  color:#fff0f9;background:rgba(233,190,222,.13);border:1px solid rgba(247,213,237,.38);border-radius:12px;}
+#dw2-sm-overlay .dw2-sm-model-row{display:flex;align-items:stretch;gap:8px;width:100%;min-width:0;}
+#dw2-sm-overlay .dw2-sm-model-row input{flex:1 1 auto;min-width:0;width:1%;}
+#dw2-sm-overlay .dw2-sm-fetch-models{flex:0 0 auto;min-width:90px;width:auto;min-height:42px;padding:6px 11px;
+  color:#36263c;font-size:13px;font-weight:650;border:1px solid rgba(253,230,249,.76);border-radius:11px;
+  background:linear-gradient(120deg,#ffd4e7,#dacefa);white-space:nowrap;}
+#dw2-sm-overlay .dw2-sm-fetch-models:disabled{opacity:.65;cursor:wait;}
+#dw2-sm-overlay .dw2-sm-model-picker{width:100%;max-width:100%;min-width:0;min-height:40px;padding:7px 9px;
+  color:#fff5fc;background:#3b3349;border:1px solid rgba(255,225,246,.4);border-radius:10px;font-size:13px;}
+#dw2-sm-overlay .dw2-sm-model-picker[hidden]{display:none !important;}
+#dw2-sm-overlay .dw2-sm-fetch-status{font-size:11px;color:#eedce8;line-height:1.5;overflow-wrap:anywhere;}
+#dw2-sm-overlay .dw2-sm-fetch-status:empty{display:none;}
+#dw2-sm-overlay .dw2-sm-field input:not([type=checkbox]){
+  box-sizing:border-box;max-width:100%;min-width:0;min-height:42px;
+  background:rgba(35,30,48,.74) !important;color:#fff4fa !important;
+  border:1px solid rgba(250,224,247,.32) !important;box-shadow:none;
+}
+#dw2-sm-overlay .dw2-sm-grid > *{min-width:0;}
+@media(max-width:520px){
+  #dw2-sm-overlay.dw2-sm-overlay{align-items:center;justify-content:center;padding:max(8px,env(safe-area-inset-top,0px)) 8px max(8px,env(safe-area-inset-bottom,0px));}
+  #dw2-sm-overlay .dw2-sm-panel{width:100%;max-height:calc(100vh - 20px);max-height:calc(100dvh - 20px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));
+    border-radius:20px;padding:16px 15px max(16px,env(safe-area-inset-bottom,0px));}
+  #dw2-sm-overlay .dw2-sm-head{margin:-8px -5px 12px;padding:10px 6px;}
+  #dw2-sm-overlay .dw2-sm-head h2{font-size:21px;}
+  #dw2-sm-overlay .dw2-sm-subtitle{margin:9px 0 12px;}
+  #dw2-sm-overlay .dw2-sm-status{margin-bottom:14px;}
+}

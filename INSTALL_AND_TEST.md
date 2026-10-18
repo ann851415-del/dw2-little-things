@@ -1,4 +1,4 @@
-# DW2 Little Things + Story Memory — 0.8.0 BETA TEST BUILD
+# DW2 Little Things + Story Memory — 0.8.1 BETA TEST BUILD
 
 This is a merged, **experimental** SillyTavern/TauriTavern frontend extension. It has not been tested on a physical Android or iPhone device. The original DW2 0.6.9-beta.1 source was preserved, except for supporting the new installation slug in its updater. The new story memory module is appended to the JavaScript and CSS files.
 
@@ -16,8 +16,8 @@ This is a merged, **experimental** SillyTavern/TauriTavern frontend extension. I
 4. Disable the original DW2 extension while testing this merged copy (the two would otherwise create overlapping menus). Disable memory injection in BakemonoMemory/Memory Palace too while testing this new injection module.
 5. Open a disposable character chat, then tap the **magic wand / Extensions** menu → **剧情记忆馆**.
 6. Set an independent HTTPS OpenAI-compatible API base URL (e.g. `https://api.openai.com/v1`), model ID, and API key. The service must permit requests from the app WebView (CORS).
-7. Enable **启用剧情记忆**, **自动总结**, and **注入下轮聊天** if appropriate. Save. Start with a small summary batch size and a test character.
-8. Tap **立即总结**, review entries, then send the next AI message to check that memory injection occurs.
+7. Tap **拉取模型** to fetch model IDs from the provider (the provider must implement `GET /v1/models`); alternatively enter the model ID manually. Then enable **启用剧情记忆**, **自动总结**, and **注入下轮聊天** if appropriate. Save. Start with a small summary batch size and a test character.
+8. Tap the top **拉取当前剧情（总结一批）** or lower **立即总结**, review entries, then send the next AI message to check that memory injection occurs.
 9. Re-roll a reply that has contributed to a summary. Its previous summary should be revoked automatically; after the new response, run summarization again and check that no discarded version is present in the memory view or next prompt.
 
 ## Functional acceptance checklist
@@ -46,4 +46,13 @@ This is a merged, **experimental** SillyTavern/TauriTavern frontend extension. I
 
 ## Automated checks
 
-Developer unit tests are recorded in TEST_REPORT.md. These checks exercise 19 cases plus 11 simulated-browser checks and are **not** real-device compatibility tests. The extension JavaScript passes `node --check` and its manifest is valid JSON.
+Developer unit tests are recorded in TEST_REPORT.md. These checks exercise 19 cases plus 27 mobile-browser checks (360px / 390px / 432px) and are **not** real-device compatibility tests. The extension JavaScript passes `node --check` and its manifest is valid JSON.
+
+## Changes in 0.8.1 (customer feedback fix)
+
+- Added **拉取模型** next to the model field. Uses the unsaved current API URL and API key, requests the provider's `/models` endpoint, fills a selectable model list, and always allows a manually entered model ID. Timeout, CORS and API errors are shown in the panel without exposing the key.
+- Added a visible **拉取当前剧情（总结一批）** button near the top, so users do not have to scroll to find the one-batch manual summary action.
+- Fixed **剧情记忆馆** menu icon + label layout and placed it next to the three native DW2 shortcut entries.
+- Kept the panel title/close button sticky while scrolling; improved touch-friendly form inputs and safe-area/mobile-height handling.
+- Re-tested response re-roll invalidation and injection in mocked mobile browser conditions.
+- No code from real provider returned /models responses was needed; **actual third-party API compatibility remains unverified**.

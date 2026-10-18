@@ -791,15 +791,37 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       return JSON.parse(raw.slice(a,b+1));
     }
   };
-  function apiUrl(){
-    const url=new URL(cfg.apiBase.trim());
+  function providerUrl(base, endpoint){
+    const url=new URL(String(base||'').trim());
     if (!['https:','http:'].includes(url.protocol)) throw new Error('API 地址只支持 https/http');
+    if(url.username || url.password) throw new Error('API 地址不能包含账户密码');
     if (url.protocol==='http:' && !['localhost','127.0.0.1','[::1]'].includes(url.hostname))
       throw new Error('远程 API 请使用 HTTPS，避免泄露密钥和剧情内容');
-    const root=url.pathname.replace(/\/+$/,'');
-    url.pathname=(root.endsWith('/chat/completions') ? root : root+'/chat/completions');
+    let root=url.pathname.replace(/\/+$/,'').replace(/\/(?:chat\/completions|models)$/,'');
+    url.pathname=root+'/'+endpoint;
     url.search=''; url.hash='';
     return url.href;
+  }
+  function apiUrl(){return providerUrl(cfg.apiBase,'chat/completions');}
+  function modelsUrl(base){return providerUrl(base,'models');}
+  async function getProviderModels(base, key){
+    if(!key.trim())throw new Error('请先填写独立 API Key');
+    const controller=new AbortController();
+    const timeout=setTimeout(()=>controller.abort(),15000);
+    try{
+      const response=await fetch(modelsUrl(base),{method:'GET',signal:controller.signal,
+        headers:{'Authorization':'Bearer '+key.trim(),'Accept':'application/json'},cache:'no-store'});
+      if(!response.ok)throw new Error('拉取模型失败（HTTP '+response.status+'），请检查 API 地址或密钥');
+      const payload=await response.json();
+      const raw=Array.isArray(payload?.data)?payload.data:Array.isArray(payload?.models)?payload.models:[];
+      const ids=[...new Set(raw.map(v=>typeof v==='string'?v:(v?.id||v?.name)).filter(v=>typeof v==='string'&&v.trim()).map(v=>v.trim()))];
+      if(!ids.length)throw new Error('该接口没有返回可选模型；你仍可手动填写模型 ID');
+      return ids.slice(0,400).sort((a,b)=>a.localeCompare(b));
+    }catch(e){
+      if(e?.name==='AbortError')throw new Error('拉取超时，请检查网络或接口地址');
+      if(e instanceof TypeError)throw new Error('无法连接模型接口；请检查地址、网络及跨域（CORS）权限');
+      throw e;
+    }finally{clearTimeout(timeout);}
   }
   async function callAI(batch, previous){
     if (!secret || !cfg.model.trim()) throw new Error('请先设置独立 API Key 和模型');
@@ -1073,20 +1095,50 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   function panelHTML(){
     const dialog=create('section','dw2-sm-panel');dialog.setAttribute('role','dialog');
     dialog.setAttribute('aria-modal','true');dialog.setAttribute('aria-label','剧情记忆');
-    const head=create('header','dw2-sm-head');const title=create('div');
+    const head=create('header','dw2-sm-head');const title=create('div','dw2-sm-heading');
     title.append(create('span','dw2-sm-eyebrow','STORY / MEMORY'),create('h2','', '✦ 剧情记忆馆'));
     const close=create('button','dw2-sm-close','×');close.type='button';close.setAttribute('aria-label','关闭');
     close.onclick=()=>overlay?.remove();head.append(title,close);dialog.append(head);
     dialog.append(create('p','dw2-sm-subtitle','按角色卡和聊天独立记录人物、世界设定与剧情时间线。只处理当前选中的回复。'));
-    const strip=create('div','dw2-sm-status');strip.id='dw2-sm-status';dialog.append(strip);
+    const strip=create('div','dw2-sm-status');strip.id='dw2-sm-status';strip.setAttribute('aria-live','polite');dialog.append(strip);
+    const quick=create('div','dw2-sm-quick');
+    const fetchStory=create('button','dw2-sm-quick-action','↻ 拉取当前剧情（总结一批）');
+    fetchStory.type='button';fetchStory.onclick=()=>void summarize(true);
+    const viewStory=create('button','dw2-sm-quick-action','查看已保存记忆');
+    viewStory.type='button';viewStory.onclick=()=>showMemories();
+    quick.append(fetchStory,viewStory);dialog.append(quick);
     const form=create('form','dw2-sm-form');form.id='dw2-sm-form';
     const toggles=create('div','dw2-sm-toggles');
     toggles.append(checkbox('启用剧情记忆','enabled',cfg.enabled),checkbox('自动总结','automatic',cfg.automatic),checkbox('注入下轮聊天','inject',cfg.inject),checkbox('AI智能召回（网络慢时自动降级）','semanticRecall',cfg.semanticRecall));
     form.append(toggles);
     const grid=create('div','dw2-sm-grid');
-    grid.append(field('独立 API 地址','apiBase','url',cfg.apiBase,{placeholder:'https://.../v1'}),
-      field('模型 ID','model','text',cfg.model,{placeholder:'gpt-4o-mini'}),
-      field('API Key','secret','password',secret,{placeholder:'sk-...'}),
+    const apiField=field('独立 API 地址','apiBase','url',cfg.apiBase,{placeholder:'https://.../v1'});
+    const keyField=field('API Key','secret','password',secret,{placeholder:'sk-...'});
+    const modelField=field('模型 ID','model','text',cfg.model,{placeholder:'填写模型 ID 或点击右侧拉取'});
+    const modelInput=modelField.querySelector('input');
+    const modelRow=create('div','dw2-sm-model-row');modelRow.append(modelInput);
+    const fetchModels=create('button','dw2-sm-fetch-models','拉取模型');fetchModels.type='button';
+    fetchModels.setAttribute('aria-label','从独立 API 拉取模型列表');modelRow.append(fetchModels);
+    modelField.append(modelRow);
+    const picker=create('select','dw2-sm-model-picker');picker.hidden=true;picker.setAttribute('aria-label','选择已拉取的模型');
+    const pullStatus=create('span','dw2-sm-fetch-status');pullStatus.setAttribute('role','status');
+    picker.onchange=()=>{if(picker.value)modelInput.value=picker.value;};
+    fetchModels.onclick=async()=>{
+      if(fetchModels.disabled)return;
+      fetchModels.disabled=true;fetchModels.textContent='拉取中…';pullStatus.textContent='正在请求模型列表…';
+      try{
+        const ids=await getProviderModels(apiField.querySelector('input').value,keyField.querySelector('input').value);
+        picker.replaceChildren();
+        const placeholder=create('option','','选择模型（仍可手动输入）');placeholder.value='';picker.append(placeholder);
+        ids.forEach(id=>{const option=create('option','',id);option.value=id;picker.append(option);});
+        picker.hidden=false;
+        if(ids.includes(modelInput.value))picker.value=modelInput.value;
+        pullStatus.textContent=`成功拉取 ${ids.length} 个模型，请选择或手动填写。`;
+      }catch(e){pullStatus.textContent=e?.message||String(e);}
+      finally{fetchModels.disabled=false;fetchModels.textContent='拉取模型';}
+    };
+    modelField.append(picker,pullStatus);
+    grid.append(apiField,keyField,modelField,
       field('每批总结楼层','batch','number',cfg.batch,{min:4,max:60}),
       field('暂不总结最近楼层','reserve','number',cfg.reserve,{min:1,max:20}),
       field('注入字符上限','maxInjection','number',cfg.maxInjection,{min:400,max:6000}));
@@ -1171,12 +1223,15 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     const menu=document.querySelector('#extensionsMenu');
     if(!menu||document.getElementById('dw2-sm-menu'))return;
     const item=create('div','extension_container interactable');item.id='dw2-sm-menu';
+    item.setAttribute('aria-label','剧情记忆馆');
     item.setAttribute('role','button');item.tabIndex=0;
     const icon=create('i','fa-solid fa-brain');icon.setAttribute('aria-hidden','true');
     item.append(icon,create('span','dw2-lt-magic-label','剧情记忆馆'));
     item.addEventListener('click',openPanel);
     item.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openPanel();}});
-    menu.append(item);
+    const floorEntry=menu.querySelector('#dw2-lt-floor-magic-entry');
+    if(floorEntry)floorEntry.insertAdjacentElement('afterend',item);
+    else menu.append(item);
   }
   function bindEvents(){
     if(registered)return;
@@ -1205,5 +1260,5 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   else boot();
   setInterval(()=>{if(document.visibilityState!=='hidden'){mountMenu();bindEvents();if(identity())verify();}},12000);
   // Exposed for non-invasive mock testing; not a public app API.
-  globalThis.__dw2StoryMemoryTest={identity,messageHash,verify,normalize,injection,record,openPanel,summarize,refreshInjection,invalidateRegeneratedTarget,removeFrom,selectedText,repairTargets,revisions,storyTimeKey,sortedTimeline,rankedCandidates,packInjection,semanticInjection};
+  globalThis.__dw2StoryMemoryTest={identity,messageHash,verify,normalize,injection,record,openPanel,summarize,refreshInjection,invalidateRegeneratedTarget,removeFrom,selectedText,repairTargets,revisions,storyTimeKey,sortedTimeline,rankedCandidates,packInjection,semanticInjection,modelsUrl,getProviderModels};
 })();
