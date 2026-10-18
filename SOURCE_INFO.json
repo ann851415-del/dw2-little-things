@@ -1,0 +1,15 @@
+{
+  "source": "User-uploaded dw2-little-things-main.zip",
+  "source_sha256": "5e13bf4d73633ab5ac5df2bb6ac637cbc2e129e68a94300318948c03ea1073ba",
+  "base_version": "DW2 0.6.9-beta.1",
+  "merged_version": "0.8.0-beta",
+  "license_note": "Source archive has no explicit license; seek author permission before sharing or publishing this derivative.",
+  "platforms_tested": [
+    "headless Chromium desktop at mobile 390x844",
+    "mocked SillyTavern JavaScript context"
+  ],
+  "platforms_not_tested": [
+    "Android TauriTavern 2.3.0 on physical device",
+    "iPhone TauriTavern 2.3.0 TestFlight on physical device"
+  ]
+}
