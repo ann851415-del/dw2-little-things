@@ -448,7 +448,7 @@
       const live=ctx();
       if(!live||!Array.isArray(live.chat)||!live.chat.length){floorStatus.textContent='请先打开一个具体聊天。';return;}
       const raw=floorInput.value.trim();
-      const match=raw.match(/^(\\d+)(?:\\s*[-~至]\\s*(\\d+))?$/);
+      const match=raw.match(/^(\d+)(?:\s*[-~至]\s*(\d+))?$/);
       if(!match){floorStatus.textContent='格式不正确，请输入单层或范围，例如 12-18。';return;}
       const start=Number(match[1]),end=Number(match[2]||match[1]);
       if(start<0||end<start||end>=live.chat.length){floorStatus.textContent='楼层超出当前聊天范围。当前可用楼层：0-'+(live.chat.length-1)+'。';return;}
